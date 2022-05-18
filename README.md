@@ -30,10 +30,14 @@ export MYMOUNT=/mydata
 ## Deploy Kubernetes Cluster
 1. Run `./docker_install.sh` without *sudo* on both *master* node and *worker* node
 2. Run `source ~/.bashrc`
-3. Run `./git_clone.sh` to clone the Kubernetes repos.
-4. On *master* node, run `./k8s_insatll.sh master <master node IP address>`
-5. On *worker* node, run `./k8s_install.sh slave` and then use the `kubeadm join ...` command obtained at the end of the previous step run in the master node to join the k8s cluster. Run the `kubeadm join` command with *sudo*
-6. run `echo 'source <(kubectl completion bash)' >>~/.bashrc && source ~/.bashrc`
+3. On *master* node, run `./k8s_insatll.sh master <master node IP address>`
+4. On *worker* node, run `./k8s_install.sh slave` and then use the `kubeadm join ...` command obtained at the end of the previous step run in the master node to join the k8s cluster. Run the `kubeadm join` command with *sudo*
+5. run `echo 'source <(kubectl completion bash)' >>~/.bashrc && source ~/.bashrc`
+
+## Download Mu's repos
+```
+./git_clone.sh
+```
 
 ## Deploy Istio (quick setup)
 1. If the system login name is different from the docker name then, run `export DOCKER_USER=<docker name>`
