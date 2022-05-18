@@ -13,9 +13,8 @@ On the master node and worker nodes, run
 ```bash
 sudo chown -R $(id -u):$(id -g) <mount point(to be used as extra storage)>
 cd <mount point>
-git clone https://github.com/ShixiongQi/UNIVERSE.git
-cd <mount point>/UNIVERSE
-git checkout mu-serverless
+git clone https://github.com/ucr-serverless/mu-deployment.git
+cd <mount point>/mu-deployment
 ```
 Then run `export MYMOUNT=<mount point>` with the added storage mount point name
 
@@ -23,9 +22,8 @@ Then run `export MYMOUNT=<mount point>` with the added storage mount point name
 ```
 sudo chown -R $(id -u):$(id -g) /mydata
 cd /mydata
-git clone https://github.com/ShixiongQi/UNIVERSE.git
-cd /mydata/UNIVERSE
-git checkout mu-serverless
+git clone https://github.com/ucr-serverless/mu-deployment.git
+cd /mydata/mu-deployment
 export MYMOUNT=/mydata
 ```
 
@@ -35,6 +33,7 @@ export MYMOUNT=/mydata
 3. Run `./git_clone.sh` to clone the Kubernetes repos.
 4. On *master* node, run `./k8s_insatll.sh master <master node IP address>`
 5. On *worker* node, run `./k8s_install.sh slave` and then use the `kubeadm join ...` command obtained at the end of the previous step run in the master node to join the k8s cluster. Run the `kubeadm join` command with *sudo*
+6. run `echo 'source <(kubectl completion bash)' >>~/.bashrc && source ~/.bashrc`
 
 ## Deploy Istio (quick setup)
 1. If the system login name is different from the docker name then, run `export DOCKER_USER=<docker name>`
