@@ -44,7 +44,7 @@ export MYMOUNT=/mydata
 2. On master node, run `./400-prerequisite.sh`
 3. On master node, run `sudo docker login` to login with your dockerhub account
 4. On master node, run `${MYMOUNT}/istio/out/linux_amd64/istioctl manifest install -f istio-de.yaml` to setup custom istio
-**NOTE: we use the built-up image (MinWork branch) in Viyom's docker registery directly**
+**NOTE: we use the built-up image in shixiongqi's docker registery directly**
 5. **Edit the resource usage of `istio-ingressgateway` deployment. Set CPU as 16 and memory as 40Gi.**
 
 ## Deploy Istio (Build manually)
@@ -108,21 +108,18 @@ sudo ./_output/bin/kube-controller-manager --kubeconfig=/etc/kubernetes/admin.co
 
 ## Experiment Setup: MU, RPS, CC
 ### Install loadtest
-1. Clone loadtest in ucr-serverless.
-2. Move to loadtest directory.
-3. Instasll loadtest dependencies
+1. Clone loadtest in ucr-serverless and move to loadtest dir
+```
+git clone https://github.com/ucr-serverless/mu-loadtest.git loadtest
+cd loadtest
+```
+2. Install loadtest dependencies
 ```
 curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 sudo apt install -y nodejs
-npm install stdio
-npm install log
-npm install testing
-npm install websocket
-npm install confinode
-npm install agentkeepalive
-npm install https-proxy-agent
+npm install stdio log testing websocket confinode agentkeepalive https-proxy-agent
 ```
-4. Loadtest command for experiment-1 and experiment-2
+3. Loadtest command for experiment-1 and experiment-2
 ```
 node sample/knative-variable-rps1.js > Workload1LOG & node sample/knative-variable-rps2.js > Workload2LOG &
 ```
@@ -147,40 +144,3 @@ node sample/knative-variable-rps1.js > Workload1LOG & node sample/knative-variab
         - Start VLOG in autoscaler
         - Rename loadtest log if needed
 
-<!-- ## Replace the default controller manager (Running as a static Pod)
-1. Compiling the customized controller manager
-```
-cd kubernetes/
-sudo ./build/run.sh make WHAT=cmd/kube-controller-manager KUBE_BUILD_PLATFORMS=linux/amd64
-```
-2. Package the kube-controller-manager binary into a container image. Save the Dockerfile in the Kubernetes directory (`kubernetes/`). See <https://kubernetes.io/docs/tasks/extend-kubernetes/configure-multiple-schedulers/>
-```
-FROM busybox
-ADD ./_output/dockerized/bin/linux/amd64/kube-controller-manager /usr/local/bin/kube-controller-manager
-```
-3. Login to the docker hub before continuing. If you already loged in, skip to next step
-```
-sudo docker login
-# Enter your username and password
-```
-4. Build the image and push it to the docker registry. **Run the following commmands in the directory of the Dockerfile. A version tag need to be specified before building the image**
-```
-docker build -f $DOCKERFILE -t customized-kube-controller-manager:$VERSION .
-docker tag customized-kube-controller-manager:$VERSION shixiongqi/customized-kube-controller-manager:$VERSION
-docker push shixiongqi/customized-kube-controller-manager:$VERSION
-```
-5. Modify the image registry in the default kube-controller-manager manifest
-```
-sudo vim /etc/kubernetes/manifests/kube-controller-manager.yaml
-# Change `image: k8s.gcr.io/kube-controller-manager:v1.19.8` to `#image: shixiongqi/customized-kube-controller-manager:$VERSION`. Specify the version tag of the latest built
-# Save the changes to the default manifest
-
-# Replace the default kube-controller-manager
-sudo kubectl replace -f /etc/kubernetes/manifests/kube-controller-manager.yaml
-
-# Check if the replacement is success by 'kubectl describe pod $KUBE_CONTROLLER_MANAGER_POD -n kube-system' and creating a new user Pod
-```
-6. Printout the logs in the kube-controller-manager
-```
-kubectl logs $KUBE_CONTROLLER_MANAGER_POD -n kube-system
-``` -->
