@@ -10,12 +10,6 @@ fi
 
 pushd $mount_path
 
-# get Kubernetes
-git clone https://github.com/ucr-serverless/mu-kubernetes.git kubernetes
-pushd kubernetes
-git checkout mu
-popd
-
 # get Istio
 git clone --recursive https://github.com/ucr-serverless/mu-istio.git istio
 pushd istio
@@ -36,16 +30,13 @@ pushd proxy
 git checkout mu
 popd
 
-# get knative-func
-# git clone https://github.com/mu-serverless/knative-func.git
-
 # get knative-serving
 mkdir -p ${GOPATH}/src/knative.dev
 pushd ${GOPATH}/src/knative.dev
 SERVING_FILE_NAME=serving
 git clone https://github.com/ucr-serverless/mu-kn-serving.git ${SERVING_FILE_NAME}
 pushd ${SERVING_FILE_NAME}
-git checkout mu
+git checkout autoscaler
 popd
 
 # return to script dir

@@ -24,6 +24,7 @@ sudo chown -R $(id -u):$(id -g) /mydata
 cd /mydata
 git clone https://github.com/ucr-serverless/mu-deployment.git
 cd /mydata/mu-deployment
+git checkout autoscaler
 export MYMOUNT=/mydata
 ```
 
@@ -34,7 +35,7 @@ export MYMOUNT=/mydata
 4. On *worker* node, run `./200-k8s_install.sh slave` and then use the `kubeadm join ...` command obtained at the end of the previous step run in the master node to join the k8s cluster. Run the `kubeadm join` command with *sudo*
 5. run `echo 'source <(kubectl completion bash)' >>~/.bashrc && source ~/.bashrc`
 
-## Download Mu's repos
+## Download Mu's repos (Make sure using the correct branch for every component)
 ```
 ./300-git_clone.sh
 ```
@@ -43,9 +44,13 @@ export MYMOUNT=/mydata
 1. If the system login name is different from the docker name then, run `export DOCKER_USER=<docker name>`
 2. On master node, run `./400-prerequisite.sh`
 3. On master node, run `sudo docker login` to login with your dockerhub account
-4. On master node, run `${MYMOUNT}/istio/out/linux_amd64/istioctl manifest install -f istio-de.yaml` to setup custom istio
+4. On master node, run `sudo docker pull shixiongqi/istioctl:latest`
+5. On master node, run `sudo docker create --name tmp_istioctl shixiongqi/istioctl:latest`
+6. On master node, run `sudo docker cp tmp_istioctl:/usr/local/bin/istioctl ./`, then run `sudo docker rm -f tmp_istioctl`
+7. On master node, run `./istioctl manifest install -f istio-de.yaml` to setup custom istio
 **NOTE: we use the built-up image in shixiongqi's docker registery directly**
-5. **Edit the resource usage of `istio-ingressgateway` deployment. Set CPU as 16 and memory as 40Gi.**
+8. **Edit the resource usage of `istio-ingressgateway` deployment. Set CPU as 16 and memory as 40Gi.**
+Note: We need to find a way to automate this step
 
 ## Deploy Istio (Build manually)
 1. If the system login name is different from the docker name then, run `export DOCKER_USER=<docker name>`
@@ -56,7 +61,7 @@ export MYMOUNT=/mydata
 
 To uninstall, run `${MYMOUNT}/istio/out/linux_amd64/istioctl x uninstall --purge` or run `./502-uninstall_custom_istio.sh`
 
-## Prerequisite of KNative Serving
+## Prerequisite of KNative Serving (This is no longer needed)
 1. Apply the Placement Decision CRD definition and API server permission
 ```
 kubectl apply -f placementDecisionCrdDefinition.yaml
@@ -78,33 +83,12 @@ sudo chmod g+rwx "/users/$(id -nu)/.docker" -R
 To uninstall, run `ko delete -f $GOPATH/src/knative.dev/serving/config/`
 
 ## Clean up Knative and Istio
-1. The termination of the `knative-serving` ns takes a long time. Please be paitent before the `knative-serving` ns gets terminated.
+1. The termination of the `knative-serving` namespace takes a long time. Please be paitent before the `knative-serving` namespace gets terminated.
 2. Run `ko delete -f $GOPATH/src/knative.dev/serving/config/` to kill all Knative pods. Waiting before all the KNative pods get killed
 3. run `kubectl get ns`. Wait until `knative-serving` ns gets killed.
-4. Switch back to default controller manager. 
-5. Run `${MYMOUNT}/istio/out/linux_amd64/istioctl x uninstall --purge` or `./502-uninstall_custom_istio.sh` to uninstall Istio. Waiting before all the Istio pods get killed
-6. Run `./500-build_istio.sh` without `sudo`.
-7. Run `./501-install_custom_istio.sh`
-
-## Replace the default controller manager (Running as a standalone process)
-#### Tips: if the binary cannot be built in /mydata/kubernetes/, download the customized repository to /users/sqi009/ and then complie again
-1. Compiling the customized controller manager
-```
-cd kubernetes/
-make WHAT=cmd/kube-controller-manager KUBE_BUILD_PLATFORMS=linux/amd64
-```
-2. Terminate the *kube-controller-manager* Pod
-```
-sudo vim /etc/kubernetes/manifests/kube-controller-manager.yaml
-# Change `image: k8s.gcr.io/kube-controller-manager:v1.19.8` to `#image: shixiongqi/customized-kube-controller-manager:v1.1`.
-# `customized-kube-controller-manager:v1.1` will crash which is an alternative way to terminate the `kube-controller-manager` Pod, although this is not the perfect method
-# Save the changes to the default manifest
-# Check whether the pod crashes. If not, try to scale the deployment, so it will crash
-```
-3. Execute the binary file of **kube-controller-manager**
-```
-sudo ./_output/bin/kube-controller-manager --kubeconfig=/etc/kubernetes/admin.conf
-```
+4. Run `${MYMOUNT}/istio/out/linux_amd64/istioctl x uninstall --purge` or `./502-uninstall_custom_istio.sh` to uninstall Istio. Waiting before all the Istio pods get killed
+5. Run `./500-build_istio.sh` without `sudo`.
+6. Run `./501-install_custom_istio.sh`
 
 ## Experiment Setup: MU, RPS, CC
 ### Install loadtest
@@ -129,7 +113,6 @@ node sample/knative-variable-rps1.js > Workload1LOG & node sample/knative-variab
 2. Experiment preparation:
         - Re-build Knative if any changes has been made: `ko apply -f config/`
         - Apply service YAML: `kubectl apply -f service.yaml`
-        - Swtich to customized kube-controller-manager
         - Start VLOG in autoscaler
         - Rename loadtest log if needed
 
@@ -140,7 +123,6 @@ node sample/knative-variable-rps1.js > Workload1LOG & node sample/knative-variab
 4. Experiment preparation:
         - Re-build Knative if any changes has been made: `ko apply -f config/`
         - Apply service YAML: `kubectl apply -f service.yaml`
-        - Swtich to default kube-controller-manager
         - Start VLOG in autoscaler
         - Rename loadtest log if needed
 
