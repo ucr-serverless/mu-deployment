@@ -9,13 +9,14 @@ spec:
     metadata:
       annotations:
         # Target 10 in-flight-requests per pod.
-        autoscaling.knative.dev/metric: rps  #rps #custom2 concurrency
+        autoscaling.knative.dev/metric: custom2 
         autoscaling.knative.dev/minScale: "1"
         autoscaling.knative.dev/SLO: "5" #second
         autoscaling.knative.dev/target: "8"
+        # scheduling.k8s.io/group-name: mu-pod-group
     spec:
       containerConcurrency: 4
-      #schedulerName: poseidon
+      # schedulerName: volcano
       containers:
       - image: gcr.io/knative-samples/autoscale-go:0.1
         resources:
@@ -37,13 +38,14 @@ spec:
     metadata:
       annotations:
         # Target 10 in-flight-requests per pod.
-        autoscaling.knative.dev/metric: rps  #rps #custom2 concurrency
+        autoscaling.knative.dev/metric: custom2
         autoscaling.knative.dev/minScale: "1"
         autoscaling.knative.dev/SLO: "5" #second
         autoscaling.knative.dev/target: "8"
+        # scheduling.k8s.io/group-name: mu-pod-group
     spec:
       containerConcurrency: 4
-      #schedulerName: poseidon
+      # schedulerName: volcano
       containers:
       - image: gcr.io/knative-samples/autoscale-go:0.1
         resources:
